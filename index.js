@@ -14,9 +14,9 @@ const db = mysql.createConnection(
   );
 
 //initial menu prompt
-const firstMenu = {
+const mainMenu = {
     type: 'list',
-    name: 'firstMenu',
+    name: 'mainMenu',
     message: 'What would you like to do?',
     choices: [
         'View All Employees',
@@ -32,8 +32,8 @@ const firstMenu = {
 
 //shows the firstMenu prompt
 function main() {
-    inquirer.prompt(firstMenu).then((answers) => {
-        switch (answers.firstMenu) {
+    inquirer.prompt(mainMenu).then((answers) => {
+        switch (answers.mainMenu) {
             //switch statement that runs a function based on what was selected
             case 'View All Employees':
                 viewEmployees();
@@ -104,22 +104,65 @@ function addEmployeePrompt() {
         {
         type: 'input',
         name: 'employeeManager',
-        message: 'Please enter the manager of the new employee'},
+        message: 'Please enter the last name of the manager of the new employee'},
         ])
         .then((response) => {
             addEmployeeSQL(response.employeeFirstName, response.employeeLastName, response.employeeRole, response.employeeManager);
-            main();
     })
     
 }
         
 //SQL query for adding new employee
 function addEmployeeSQL(firstName, lastName, role, manager) {
-    console.log(firstName, lastName, role, manager);
-}
+    //getting the role's ID
+    db.query(`SELECT id FROM role WHERE title=?;`, role, function (err, result) {
+        const roleID = result[0].id;
+
+        //getting manager's ID
+        db.query(`SELECT id FROM employees WHERE last_name=?;`, manager, function (err, result) {
+            const managerID = result[0].id;
+
+            //inserting into employee table
+            db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id)
+            VALUES (?, ?, ?, ?);`, [firstName, lastName, roleID, managerID], function (err, result) {
+                if (err) {
+                    console.log(err);
+                }
+                console.log('Database updated!');
+                main();
+            })
+        })
+    })
+};
 
 function updateEmployeeRole() {
-
+    //prompt for user input
+    inquirer.prompt(
+        [{
+            type: 'input',
+            name: 'employeeToUpdate',
+            message: 'Please enter the last name of the employee to update.'
+        },
+        {
+            type: 'input',
+            name: 'updatedRole',
+            message: 'Please enter the new role for the employee.'
+        }
+        ]).then((response) => {
+            //query to get role ID
+            db.query(`SELECT id FROM role WHERE title=?;`, response.updatedRole, function (err, result) {
+                    const updatedRoleID = result[0].id;
+                    const employeeToUpdate = response.employeeToUpdate;
+                //update employee
+                db.query(`UPDATE employees SET role_id = ? WHERE last_name = ?;`, [updatedRoleID, employeeToUpdate], function (err, result) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Database updated!');
+                    main();
+                })
+            })
+        })
 }
 
 //prompts to get info to create new role
@@ -140,15 +183,29 @@ function addRolePrompt() {
         ])
         .then((response) => {
             addRoleSQL(response.roleTitle, response.roleSalary, response.roleDepartment);
-            main();
     })
     
 }
 
+//SQL query to add a role
 function addRoleSQL(title, salary, department) {
-    console.log(title, salary, department);
-}
+    //query to get the department ID
+    db.query(`SELECT id FROM department WHERE dept_name=?;`, department, function (err, result) {
+        const deptID = result[0].id;
 
+            //inserts new role into role table
+            db.query(`INSERT INTO role (title, salary, department_id)
+            VALUES (?, ?, ?)`, [title, salary, deptID], function (err, result) {
+                if (err) {
+                   console.log(err);
+                }
+                console.log('Database updated!');
+                main();
+            })
+        })
+    }
+
+//prompt to get needed info to add department
 function addDepartmentPrompt() {
     inquirer.prompt([
         {
@@ -158,12 +215,19 @@ function addDepartmentPrompt() {
         ])
         .then((response) => {
             addDepartmentSQL(response.deptName);
-            main();
     })
 }
 
+//SQL query to add a department
 function addDepartmentSQL(deptName) {
-    console.log(deptName);
+    db.query(`INSERT INTO department (dept_name)
+    VALUES (?)`, [deptName], function (err, result) {
+        if (err) {
+            console.log(err);
+        }
+        console.log('Database updated!');
+        main();
+    })
 }
 
 //quits program
