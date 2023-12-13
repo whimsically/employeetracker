@@ -36,7 +36,6 @@ function main() {
         switch (answers.firstMenu) {
             //switch statement that runs a function based on what was selected
             case 'View All Employees':
-                console.log('hii');
                 viewEmployees();
                 break;
             case 'Add Employee':
@@ -49,13 +48,13 @@ function main() {
                 viewRoles();
                 break;
             case 'Add Role':
-                addRole();
+                addRolePrompt();
                 break;
             case 'View All Departments':
                 viewDepartments();
                 break;
             case 'Add Department':
-                addDepartment();
+                addDepartmentPrompt();
                 break;
             case 'Quit':
                 quitProgram();
@@ -108,33 +107,72 @@ function addEmployeePrompt() {
         message: 'Please enter the manager of the new employee'},
         ])
         .then((response) => {
-            console.log(response.employeeFirstName);
-            addEmployeeSQL();
+            addEmployeeSQL(response.employeeFirstName, response.employeeLastName, response.employeeRole, response.employeeManager);
             main();
     })
     
 }
         
-
-function addEmployeeSQL() {
-
+//SQL query for adding new employee
+function addEmployeeSQL(firstName, lastName, role, manager) {
+    console.log(firstName, lastName, role, manager);
 }
 
 function updateEmployeeRole() {
 
 }
 
-function addRole() {
-
+//prompts to get info to create new role
+function addRolePrompt() {
+    inquirer.prompt([
+        {
+        type: 'input',
+        name: 'roleTitle',
+        message: 'Please enter the title of the new role'},
+        {
+        type: 'input',
+        name: 'roleSalary',
+        message: 'Please enter the salary of the new role'},
+        {
+        type: 'input',
+        name: 'roleDepartment',
+        message: 'Please enter the department of the new role'}
+        ])
+        .then((response) => {
+            addRoleSQL(response.roleTitle, response.roleSalary, response.roleDepartment);
+            main();
+    })
+    
 }
 
-function addDepartment() {
-
+function addRoleSQL(title, salary, department) {
+    console.log(title, salary, department);
 }
 
+function addDepartmentPrompt() {
+    inquirer.prompt([
+        {
+        type: 'input',
+        name: 'deptName',
+        message: 'Please enter the name of the new department'}
+        ])
+        .then((response) => {
+            addDepartmentSQL(response.deptName);
+            main();
+    })
+}
+
+function addDepartmentSQL(deptName) {
+    console.log(deptName);
+}
+
+//quits program
 function quitProgram() {
-
+    process.exit();
 }
 
+//initial welcome message
 console.log('Welcome to the Employee Management System!');
+
+//runs main function for first time
 main();
